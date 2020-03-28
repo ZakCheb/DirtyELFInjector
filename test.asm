@@ -1,10 +1,26 @@
-; Shellcode inpired fro https://www.matteomalvica.com/blog/2019/05/18/injecting-shellcode-into-x64-elf-binaries/
 
 
   nop
   nop
   nop
-  push rax         ; save all clobbered registers
+
+  push rax         
   mov rax,0xdeadbeef
   pop rax
-  jmp 0x6130  ;ENTRY
+
+
+  push rax         
+  mov rax,0xdeadbeef
+  pop rax
+
+
+  push rax         
+  mov rax,0xdeadbeef
+  pop rax
+
+
+  push rax         
+  mov rax,0xdeadbeef
+  pop rax
+
+; assume it ends with jump to entrypoint
