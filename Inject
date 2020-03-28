@@ -1,0 +1,14 @@
+#!/bin/bash
+rm ls
+cp /bin/ls .
+# Generate 100bytes of nops
+seq 100 | xargs -i bash -c 'echo -ne x90 >> nopsection' 
+objcopy --add-section .backdoor=nopsection --set-section-flags .backdoor=alloc,load,code ls 
+objcopy --adjust-section-vma .backdoor=0xbeef ls
+#https://reverseengineering.stackexchange.com/questions/14779/how-to-successfully-add-a-code-section-to-an-executable-file-in-linux
+# Need to adjust segment too, segment is not loaded.
+ENTRYPOINT=$(readelf -a ls | grep Entry | cut -d : -f 2 | sed 's/^\s\+//g')
+echo "Original entry=$ENTRYPOINT"
+#[0x00000018]> wx efbe
+# 0x18
+r2 -c "0x18; oo+;wx efbe;0xbeef; \"wa nop;nop;nop;push rax; push rbx; pop rbx; pop rax; jmp $ENTRYPOINT\"" ls

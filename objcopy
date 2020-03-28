@@ -1,0 +1,29 @@
+       --set-section-flags sectionpattern=flags
+           Set the flags for any sections matching sectionpattern.  The flags argument is a comma separated string of flag names.  The recognized names are alloc, contents, load,
+           noload, readonly, code, data, rom, share, and debug.  You can set the contents flag for a section which does not have contents, but it is not meaningful to clear the contents
+           flag of a section which does have contents--just remove the section instead.  Not all flags are meaningful for all object file formats.
+
+       --add-section sectionname=filename
+           Add a new section named sectionname while copying the file.  The contents of the new section are taken from the file filename.  The size of the section will be the size of
+           the file.  This option only works on file formats which can support sections with arbitrary names.  Note - it may be necessary to use the --set-section-flags option to set
+           the attributes of the newly created section.
+
+       --dump-section sectionname=filename
+           Place the contents of section named sectionname into the file filename, overwriting any contents that may have been there previously.  This option is the inverse of
+           --add-section.  This option is similar to the --only-section option except that it does not create a formatted file, it just dumps the contents as raw binary data, without
+           applying any relocations.  The option can be specified more than once.
+
+       --add-symbol name=[section:]value[,flags]
+           Add a new symbol named name while copying the file.  This option may be specified multiple times.  If the section is given, the symbol will be associated with and relative to
+           that section, otherwise it will be an ABS symbol.  Specifying an undefined section will result in a fatal error.  There is no check for the value, it will be taken as
+           specified.  Symbol flags can be specified and not all flags will be meaningful for all object file formats.  By default, the symbol will be global.  The special flag
+           'before=othersym' will insert the new symbol in front of the specified othersym, otherwise the symbol(s) will be added at the end of the symbol table in the order they
+           appear.
+       --adjust-section-vma sectionpattern{=,+,-}val
+           Set or change both the VMA address and the LMA address of any section matching sectionpattern.  If = is used, the section address is set to val.  Otherwise, val is added to
+           or subtracted from the section address.  See the comments under --change-addresses, above. If sectionpattern does not match any sections in the input file, a warning will be
+           issued, unless --no-change-warnings is used.
+
+https://stackoverflow.com/questions/14361248/whats-the-difference-of-section-and-segment-in-elf-file-format
+objcopy --add-symbol shellcode=.shellcode asm
+objcopy --add-section .shellcode=17-5050-RAW --set-section-flags shellcode=load,code asm

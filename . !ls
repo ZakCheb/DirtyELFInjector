@@ -1,0 +1,17 @@
+iS Show Section
+ie Show entrypoints rabin2 -e FILE
+V Switch to visual
+P change visual mode
+aaaa analyse all
+0xdeadbeef go to address deadbeef
+0x0 go to 
+
+
+
+
+
+$ rasm2 -a java 'nop'
+00
+$ rasm2 -a x86 -d '90'
+nop
+

@@ -1,0 +1,18 @@
+# How to Inject code into binary
+## Bare metal hex editing
+
+-  find opcodes with pwntools
+#>>> disasm(asm("mov eax, ebx"))
+'   0:   89 d8                   mov    eax, ebx'
+hexedit 
+
+## elfinject
+
+## RD_RELOAD
+
+## Trampoline
+- ELF
+look for code cave with gocave
+Change entrypoint 0x18
+Problem: when changing
+https://reverseengineering.stackexchange.com/questions/23083/elf-file-crashing-after-executing-shellcode

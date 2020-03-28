@@ -1,0 +1,5 @@
+- Add executable section called bd
+Use objcopy --add-section. You may want --set-section-flags as well
+- Change entrypoint to new section
+- Generate shellcode
+- add jump to original entrypoint
