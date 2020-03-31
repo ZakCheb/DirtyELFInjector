@@ -5,3 +5,10 @@ Use objcopy --add-section. You may want --set-section-flags as well
 - add jump to original entrypoint
 - Adding reverse shell
 - making reverse shell persistent
+- problem with  /bin/sh string 48bbff2f6269.  movabs rbx, 0x4868732f69622fff
+root@Zakali:~/RE/C/ls_rev_shell# objdump -d bind_12345 | grep 0x68
+  40107e:       48 bb ff 2f 62 69 6e    movabs $0x68732f6e69622fff,%rbx
+root@Zakali:~/RE/C/ls_rev_shell# objdump -d injected_ls| grep 22fff
+    bf6d:       48 bb ff 2f 62 69 2f    movabs $0x4868732f69622fff,%rbx
+
+
