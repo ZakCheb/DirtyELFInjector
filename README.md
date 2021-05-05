@@ -13,7 +13,7 @@ How the `Inject` script work.
 
 1. Inject new read/write/execute section, used with objcopy.
 2. Change Entry point to the new section with  radare2.
-3. Put the payload in the new section, used nasm+ld to compile the Trampoline payload, the default paylaod is a bind shell that listens on 5000.
+3. Put the payload in the new section, used nasm+ld to compile the Trampoline payload, the default paylaod is a bind shell that listens on 12345.
 3. Jump back to the original Entrypoint when at the end of the Trampoline payload.
 
 The trick is to set the section offset on unused code to avoid seg faults.
