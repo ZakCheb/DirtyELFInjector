@@ -15,7 +15,7 @@ How the `Inject` script work.
 
 The trick is to set the section offset on unused code to avoid seg faults.
 Successfull test on ls with 0xbeef section offset, no detection from [AV](https://www.virustotal.com/gui/file/cf69e2fe0329c43a8ec0f14599f26d0a78f15aa22cf30336dd59d374a30ea895/detection) like symantec, Kaspersky, fortinet ... was quite surprised for a first attempt.
-
+UPDATE 2020-07-18 got detected by Avast, AVG.
 
 ## Requirements
 

