@@ -20,3 +20,4 @@ UPDATE 2020-07-18 got detected by Avast, AVG.
 ## Requirements
 
 - radare2
+- python
